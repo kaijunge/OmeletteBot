@@ -27,10 +27,25 @@ bool slowArmStatus = false;
 
 #define ARMS_TOGETHER 3
 
+/*
+------------- Gripper manipulation cases --------------
+*/
+
+#define restart '0'
+#define normalGrip '1'
+#define mediumGrip '2'
+#define hardGrip '3'
+#define openMM '4'
+#define closeMM '5'
+#define gripInCentre '6'
+#define openGripper '7'
+#define lightGrip '8'
+
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(115200);
 
+  // Set pinmodes
   pinMode(potEnable, OUTPUT);
 
   //enable readout from potentiometer
@@ -41,25 +56,40 @@ void loop() {
 
   initArms();
 
-  //gripObjects(2);
-  /*
-  int maxval = 0;
-  moveArm(slowArm, CLOSE, 100);
-  moveArm(fastArm, CLOSE, 100);
-  while(errorCheck() == 0) {
-    int value = readCurrent();
-    Serial.println(value);
+  // begin main loop
+  while(true) {
+    char readIn = Serial.read();
 
-    if(value > maxval) {
-      maxval = value;
+    if(readIn == restart) {
+      
     }
+    else if(readIn == normalGrip) {
+      
+    }
+    else if(readIn == mediumGrip) {
+      
+    }
+    else if(readIn == hardGrip) {
+      
+    }
+    else if(readIn == openMM) {
+      
+    }
+    else if(readIn == closeMM) {
+      
+    }
+    else if(readIn == gripInCentre) {
+      
+    }
+    else if(readIn == openGripper) {
+      
+    }
+    else if(readIn == lightGrip) {
+      
+    }
+    
   }
-  Serial.print("max:  "); Serial.println(maxval);
-  moveArm(slowArm, STOP, 0);
-  moveArm(fastArm, STOP, 0);
-  */
-
-  delay(999999);
+  
 }
 
 void gripObjects(int mode) {
