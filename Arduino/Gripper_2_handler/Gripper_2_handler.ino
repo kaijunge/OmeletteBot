@@ -40,6 +40,10 @@ bool slowArmStatus = false;
 #define gripInCentre '6'
 #define openGripper '7'
 #define lightGrip '8'
+#define fastArmOnlyGrip '9'
+
+
+bool debug = false;
 
 void setup() {
   // put your setup code here, to run once:
@@ -50,24 +54,25 @@ void setup() {
 
   //enable readout from potentiometer
   digitalWrite(potEnable, HIGH);
+
+  // if debug mode or not
+  debug = false;
 }
 
 void loop() {
-
-  initArms();
 
   // begin main loop
   while(true) {
     char readIn = Serial.read();
 
     if(readIn == restart) {
-      
+      initArms();
     }
     else if(readIn == normalGrip) {
-      
+      gripObjects(2, 70);
     }
     else if(readIn == mediumGrip) {
-      
+      gripObjects(2, 90);
     }
     else if(readIn == hardGrip) {
       
@@ -82,21 +87,24 @@ void loop() {
       
     }
     else if(readIn == openGripper) {
-      
+      both_arms_to_base();
     }
     else if(readIn == lightGrip) {
       
+    }
+    else if(readIn == fastArmOnlyGrip) {
+      gripObjects(0, 0);
     }
     
   }
   
 }
 
-void gripObjects(int mode) {
+void gripObjects(int mode, int currentThreshold) {
 
   switch(mode) {
     case 0:
-      Serial.print("Gripping Objects, Fast Arm: "); Serial.println(mode);
+      if(debug) { Serial.print("Gripping Objects, Fast Arm: "); Serial.println(mode); }
       
       moveArm(fastArm, CLOSE, 100);
       delay(100);
@@ -104,7 +112,8 @@ void gripObjects(int mode) {
 
       while(true) {
         if(readCurrent() > 40) {
-          Serial.println("Current Detected");
+          // Current detected
+          Serial.println("Complete");
           break;
         }
 
@@ -121,7 +130,7 @@ void gripObjects(int mode) {
 
       break;
     case 2:
-      Serial.print("Gripping Objects, Fast Arm: "); Serial.println(mode);
+      if(debug) { Serial.print("Gripping Objects, Both Arms: "); Serial.println(mode);}
       
       moveArm(fastArm, CLOSE, 100);
       moveArm(slowArm, CLOSE, 100);
@@ -130,14 +139,16 @@ void gripObjects(int mode) {
 
       while(true) {
 
-        Serial.println(readCurrent());
-        if(readCurrent() > 80) {
-          Serial.println("Current Detected");
+        if(debug) { Serial.println(readCurrent()); }
+
+        
+        if(readCurrent() > currentThreshold) {
+          Serial.println("Complete");
           break;
         }
 
         if(errorCheck() != 0) {
-          Serial.println("Error Detected");
+          Serial.println("Error");
           break;
         }
       }
@@ -148,6 +159,7 @@ void gripObjects(int mode) {
     case 3:
 
       break;
+      
     default:
       Serial.println("No gripping style specifified");
       break;
@@ -156,7 +168,8 @@ void gripObjects(int mode) {
 }
 
 void initArms() {
-  Serial.println("Initiating Arms");
+  if(debug) { Serial.println("Initiating Arms"); }
+  
   both_arms_to_base();
 
 
@@ -182,10 +195,13 @@ void initArms() {
       }
   }
   */
-  Serial.print("Error Code:  "); Serial.println(errorCheck());
-  Serial.print("Fast arm:  "); Serial.println(armPos_raw(fastArm));
-  Serial.print("Slow arm:  "); Serial.println(armPos_raw(slowArm));
-  Serial.println("Initiation Complete\n\n");
+
+  if(debug) {
+    Serial.print("Error Code:  "); Serial.println(errorCheck());
+    Serial.print("Fast arm:  "); Serial.println(armPos_raw(fastArm));
+    Serial.print("Slow arm:  "); Serial.println(armPos_raw(slowArm));
+    Serial.println("Initiation Complete\n\n");
+  }
 }
 
 float readCurrent() {
@@ -239,15 +255,22 @@ void both_arms_to_base() {
     }
 
     if(errorCheck() != 0) {
-      Serial.print("ERROR OCCURED CHECK SYSTEM!!    Error: ");
-      Serial.println(errorCheck());
       moveArm(fastArm, STOP, 0);
       moveArm(slowArm, STOP, 0);
+
+      if(debug) {
+        Serial.print("ERROR OCCURED CHECK SYSTEM!!    Error: ");
+        Serial.println(errorCheck());
+      }
+      else {
+        Serial.println("Error");
+      }
     }  
   }
 
   if(errorCheck() == 0) {
     Serial.println("Both arms back to base");
+    Serial.println("Complete");
   }
  
 }
