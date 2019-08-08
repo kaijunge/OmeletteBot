@@ -60,25 +60,30 @@ void setup() {
 }
 
 void loop() {
-
   // begin main loop
+  
   while(true) {
     char readIn = Serial.read();
-
+  
     if(readIn == restart) {
+      Serial.print("RESTARRING");
       initArms();
     }
     else if(readIn == normalGrip) {
-      gripObjects(2, 70);
+      Serial.print("NORMAL GRIP");
+      gripObjects(2, 60);
     }
     else if(readIn == mediumGrip) {
-      gripObjects(2, 90);
+      Serial.print("MEDIUM GRIP");
+      gripObjects(2, 85);
     }
     else if(readIn == hardGrip) {
-      
+      Serial.print("HARD GRIP");
+      gripObjects(2, 110);
     }
     else if(readIn == openMM) {
       
+      gripObjects(2, 85);
     }
     else if(readIn == closeMM) {
       
@@ -101,17 +106,18 @@ void loop() {
 }
 
 void gripObjects(int mode, int currentThreshold) {
-
+  long timer;
   switch(mode) {
     case 0:
       if(debug) { Serial.print("Gripping Objects, Fast Arm: "); Serial.println(mode); }
       
       moveArm(fastArm, CLOSE, 100);
       delay(100);
-      while((readCurrent() > 20 || readCurrent() < 5) && errorCheck() == 0) {}
+      timer = millis();
+      while((readCurrent() > 20 || readCurrent() < 5) && errorCheck() == 0 && millis() - timer < 100) {}
 
       while(true) {
-        if(readCurrent() > 40) {
+        if(readCurrent() > 50) {
           // Current detected
           Serial.println("Complete");
           break;
@@ -135,7 +141,8 @@ void gripObjects(int mode, int currentThreshold) {
       moveArm(fastArm, CLOSE, 100);
       moveArm(slowArm, CLOSE, 100);
       delay(100);
-      while((readCurrent() > 50 || readCurrent() < 5) && errorCheck() == 0) {}
+      timer = millis();
+      while((readCurrent() > 70 || readCurrent() < 5) && errorCheck() == 0 && millis() - timer < 100) {}
 
       while(true) {
 
@@ -157,7 +164,8 @@ void gripObjects(int mode, int currentThreshold) {
       moveArm(slowArm, STOP, 0);
       break;
     case 3:
-
+    // move to certain position
+    
       break;
       
     default:
