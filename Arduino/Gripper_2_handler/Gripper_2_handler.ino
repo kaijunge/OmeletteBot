@@ -75,11 +75,11 @@ void loop() {
     }
     else if(readIn == mediumGrip) {
       Serial.print("MEDIUM GRIP");
-      gripObjects(2, 85);
+      gripObjects(2, 95);
     }
     else if(readIn == hardGrip) {
       Serial.print("HARD GRIP");
-      gripObjects(2, 110);
+      gripObjects(2, 140);
     }
     else if(readIn == openMM) {
       
@@ -235,7 +235,7 @@ void arm_to_base(bool whichArm) {
 
 void both_arms_to_base() {
 
-  if(errorCheck() == ARMS_TOGETHER) {
+  if(errorCheck_Harsh() == ARMS_TOGETHER) {
 
     bool whichArm;
     if(abs(armPos_raw(slowArm) - slowArmLimit) > abs(armPos_raw(fastArm) - fastArmLimit)) {
@@ -246,6 +246,7 @@ void both_arms_to_base() {
     }
 
     moveArm(whichArm, OPEN, 100);
+    Serial.println("HERE!");
     delay(500);
   }
   
@@ -306,6 +307,26 @@ int errorCheck() {
   
   // IF ARMS ARE COLLIDING TO EACH OTHER
   if(armPos_raw(slowArm) - armPos_raw(fastArm) < closingLimit) {
+    error = 3;
+  }
+
+  return error;
+}
+
+int errorCheck_Harsh() {
+  int error = 0;
+  
+  // IF ARM IS BEYOND THEIR LIMITS
+  if(armPos_raw(fastArm) < fastArmLimit - potTolerance*2) {
+     error = 1;
+  }
+
+  if(armPos_raw(slowArm) > slowArmLimit + potTolerance*2) {
+    error = 2;
+  }
+  
+  // IF ARMS ARE COLLIDING TO EACH OTHER
+  if(armPos_raw(slowArm) - armPos_raw(fastArm) < closingLimit + 50) {
     error = 3;
   }
 
