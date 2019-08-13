@@ -71,15 +71,15 @@ void loop() {
     }
     else if(readIn == normalGrip) {
       Serial.print("NORMAL GRIP");
-      gripObjects(2, 60);
+      gripObjects(2, 70);
     }
     else if(readIn == mediumGrip) {
       Serial.print("MEDIUM GRIP");
-      gripObjects(2, 95);
+      gripObjects(2, 110);
     }
     else if(readIn == hardGrip) {
       Serial.print("HARD GRIP");
-      gripObjects(2, 140);
+      gripObjects(2, 160);
     }
     else if(readIn == openMM) {
       
