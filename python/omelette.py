@@ -1,4 +1,5 @@
 import time
+import datetime
 import serial
 from math import pi, sqrt, sin, cos
 import numpy
@@ -29,10 +30,15 @@ openGripper = 7
 lightGrip = 8
 fastArmOnlyGrip = 9
 
+timeToHeat_offset = 24.088
+timeToLiftPan_offset = 8
+
 
 ### -----------------------------------------------------###
 ### ------------ -Defining Global Varialbles-------------###
 disableGripper = False
+cookingTimer = 0
+dishTimer = 0
 
 
 ### -----------------------------------------------------###
@@ -71,6 +77,7 @@ def translatel_rel(arthur, x, y, z, velocity = 0.5, accel = 0.5, linear = True):
 
 # move the TCP in an eliptical path in the xy plane
 def move_elipse(arthur, x_amplitude = 0.05, y_amplitude = 0.05, min_timestep = 0.05, number_of_turns = 1):
+    global cookingTimer
     startpos = arthur.getl()
 
     max_step = 200
@@ -87,7 +94,7 @@ def move_elipse(arthur, x_amplitude = 0.05, y_amplitude = 0.05, min_timestep = 0
         pos[i][1] = cosine[i] + startpos[1]
         # print(pos[i][0])
 
-    arthur.movejl(pos[0], vel=1)
+    arthur.movejl(pos[0], vel=1, acc=2)
 
     factor = 100 / max_step
     dt_initial = 0.6 * factor
@@ -96,7 +103,10 @@ def move_elipse(arthur, x_amplitude = 0.05, y_amplitude = 0.05, min_timestep = 0
 
     for j in range(0, number_of_turns):
 
+        newtime = time.time()
+
         for i in range(0, max_step):
+            global cookingTimer
             if i < max_step / 2:
                 if j == 0:
                     dt = dt_initial - (i * timeGain) ** 0.4
@@ -114,6 +124,7 @@ def move_elipse(arthur, x_amplitude = 0.05, y_amplitude = 0.05, min_timestep = 0
                 dt = dt_minimum
 
             arthur.servoj(pos[i], control_time=dt, lookahead_time=0.008, gain=300)
+
 
     arthur.movejl(startpos, vel= 0.1)
 
@@ -153,6 +164,7 @@ def open_egg(arthur, eggs = 2, debug = False):
 
     arthur.home(vel = 2, acc = 2)
 
+'''
 #Getting the egg opener
 #### NOT DONE!!!
 def take_out_shell(arthur, debug = False):
@@ -178,10 +190,17 @@ def take_out_shell(arthur, debug = False):
     arthur.movel_tool([0, 0, 0, 0, 0, pi / 11], vel=0.05)
     if debug:
         input()
+'''
 
-
-def pour_egg(arthur, debug = False):
+def pour_egg(arthur, waiTime = 30, continous = True, debug = False):
+    global cookingTimer, dishTimer
     gripperAction(openGripper)
+
+    realWaitTime = waiTime - timeToHeat_offset
+
+    if time.time() - realWaitTime > 0:
+        time.sleep(realWaitTime)
+
     if debug:
         input()
 
@@ -212,28 +231,40 @@ def pour_egg(arthur, debug = False):
     if debug:
         input()
 
-    arthur.movel_tool([0, 0, 0, 0, 0, pi / 2], vel=3)
-    arthur.translatejl([0.3, -0.25, 0.3], vel=2, acc = 1.5)
-
-    arthur.movel_tool([0, 0, 0, 0, 0, pi / 7], vel=3)
-
-
-
-    ### ----------- POURING ACTION START HERE
-    #arthur.movej_rel([0, 0, 0, pi / 6, 0, 0], vel=3)
-
-    translatel_rel(arthur, -0.05, 0, -0.02, velocity=0.1)
-
-    arthur.movel_tool([0,0,0,0,11*pi/20, 0], vel=0.1)
-
-    time.sleep(1)
-    arthur.movel_tool([0, 0, 0, 0, -11*pi/20, 0], vel=0.3)
-    arthur.movel_tool([0, 0, 0, 0, 0, -pi / 7 - pi / 2], vel=2, acc=3)
+    arthur.movel_tool([0, 0, 0, 0, 0, 3*pi / 4], vel=1)
+    arthur.translatejl([0.47, -0.45, 0.22], vel=0.5, acc = 1.5)
 
     if debug:
         input()
 
-    arthur.translatejl([-0.02, -0.3, 0.15], vel=2, acc=1)
+    arthur.movej_rel([0,0,0,pi/4, 0,0], vel=2, acc= 2)
+    #arthur.movel_tool([0,0,0,0,10*pi/20, 0], vel=0.3)
+
+    translatel_rel(arthur, 0.06, -0.05, -0.11, velocity=2, accel=2)
+    if debug:
+        input()
+
+    arthur.movej_rel([0, 0, 0, pi / 6, 0, 0], vel=3, acc=3)
+    translatel_rel(arthur, 0,0,-0.1, velocity=2,  accel=2)
+
+    arthur.movej_rel([0, 0, 0, pi / 6, 0, 0], vel=3, acc=3)
+
+    dishTimer = time.time()
+    time.sleep(1)
+
+    arthur.movej_rel([0, 0, 0, -pi / 4, 0, 0], vel=4, acc=4)
+
+    translatel_rel(arthur, 0,0,0.16, velocity=1, accel=2)
+
+    arthur.movej_rel([0, 0, 0, -pi / 4, 0, 0], vel=4, acc=4)
+    #arthur.movel_tool([0, 0, 0, 0, -10*pi/20, 0], vel=0.4)
+    #arthur.movel_tool([0, 0, 0, 0, 0, - pi / 2], vel=0.2, acc=3)
+
+    if debug:
+        input()
+
+    translatel_rel(arthur, 0, 0.05, 0, velocity=1)
+    arthur.movejl([-0.02, -0.3, 0.15, (sqrt(0.5) * pi), (sqrt(0.5) * pi), 0], vel=3, acc=2)
 
     ### ----------- ALIGNED WITH BOWL RETURN SITE, ABOUT TO MOVE FORWARDS
     if debug:
@@ -245,30 +276,36 @@ def pour_egg(arthur, debug = False):
     if debug:
         input()
 
-    translatel_rel(arthur, 0, 0, -0.045, velocity=0.3)
-    translatel_rel(arthur, 0, -0.05, 0, velocity=0.3)
+    translatel_rel(arthur, 0, 0, -0.045, velocity=1)
+    translatel_rel(arthur, 0, -0.045, 0, velocity=1)
 
     ### ----------- GET GRIPPER OUT OF THE BOWL
     translatel_rel(arthur, 0, 0.01, 0, velocity=0.3)
-    arthur.movel_tool([0, 0, 0, 0, -pi / 16, 0], vel=0.1)
-    translatel_rel(arthur, 0, 0.01, 0.1, velocity=0.1)
+    arthur.movel_tool([0, 0, 0, 0, -pi / 16, 0], vel=1)
+    translatel_rel(arthur, 0, 0.01, 0.1, velocity=1)
 
-    arthur.home(vel=2, acc=2)
+    if continous:
+        currpos = arthur.getl()
+        arthur.movejl([currpos[0], currpos[1], currpos[2], 0, pi, 0], vel= 3, acc=4)
+
+    else:
+        arthur.home(vel=2, acc=2)
 
 
 def move_pan_to_hob(arthur, continous = False, debug = False):
+    global cookingTimer
     arthur.set_tcp([0, 0, 0, 0, 0, 0])
 
     if debug:
         input()
 
     arthur.translatejl([0.17, -0.4, 0.25], vel =2, acc = 2)
-    translatel_rel(arthur, 0,0,-0.12, velocity = 0.05)
+    translatel_rel(arthur, 0,0,-0.13, velocity = 0.05)
 
     if debug:
         input()
 
-    gripperAction(mediumGrip)
+    gripperAction(hardGrip)
 
     liftheight = 0.12
     intiallift = 0.03
@@ -281,6 +318,7 @@ def move_pan_to_hob(arthur, continous = False, debug = False):
     arthur.translatejl([0.43, -0.395, 0.13 + liftheight], vel=1, acc = 1)
     translatel_rel(arthur, 0, 0, -1*liftheight + 0.01, velocity=0.05)
 
+    cookingTimer = time.time()
     if debug:
         input()
 
@@ -295,22 +333,23 @@ def move_pan_to_hob(arthur, continous = False, debug = False):
         arthur.translatejl([0.3, -0.3, 0.3], vel = 1)
         arthur.home()
 
-def move_in_pan(arthur, continous = False, debug = False):
+    print(time.time() - cookingTimer)
+
+def move_in_pan(arthur, continous = False, turns = 10, twoTunrsAsSet = True, debug = False):
+    global cookingTimer
     arthur.set_tcp([0, 0, 0, 0, 0, 0])
     if debug:
         input()
 
 
-    arthur.movejl([0.27, -0.495, 0.35, -0, pi, 0], vel = 1)
-    translatel_rel(arthur, 0, -0.10, -0.15, velocity=0.1)
+    arthur.movejl([0.27, -0.495, 0.35, -0, pi, 0], vel = 3, acc=3)
+    translatel_rel(arthur, 0, -0.10, -0.15, velocity=2, accel=2)
 
-    translatel_rel(arthur, 0, 0, -0.065, velocity=0.05)
-
-    print(arthur.getl())
+    translatel_rel(arthur, 0, 0, -0.065, velocity=0.5)
 
     gripperAction(mediumGrip)
 
-    translatel_rel(arthur, 0,0,0.1, velocity=0.5)
+    translatel_rel(arthur, 0,0,0.1, velocity=1)
 
     if debug:
         input()
@@ -326,29 +365,43 @@ def move_in_pan(arthur, continous = False, debug = False):
     arthur.movejl([currpos[0], currpos[1], currpos[2], 0, (sqrt(0.5) * pi), -sqrt(0.5) * pi], vel=2, acc=2)
 
 
-    translatel_rel(arthur, 0.21, -0.01, -0.07)
-    time.sleep(0.2)
+    translatel_rel(arthur, 0.21, -0.01, -0.14)
     arthur.force_move([0, 0, -0.1], force=13, vel=0.05)
     translatel_rel(arthur, 0 , 0, 0.008)
 
+    print(time.time() - dishTimer)
     if debug:
         input()
 
-
-    speed = 0.02
+    speed = 0.03
     amplitude = 0.06
-    move_elipse(arthur, x_amplitude=amplitude/3, y_amplitude=amplitude, min_timestep=speed, number_of_turns=1)
-    move_elipse(arthur, x_amplitude=amplitude, y_amplitude=amplitude/3, min_timestep=speed, number_of_turns=1)
-    move_elipse(arthur, x_amplitude=amplitude, y_amplitude=amplitude, min_timestep=speed, number_of_turns=1)
+    # move_elipse(arthur, x_amplitude=amplitude/3, y_amplitude=amplitude, min_timestep=speed, number_of_turns=1)
+    # move_elipse(arthur, x_amplitude=amplitude, y_amplitude=amplitude/3, min_timestep=speed, number_of_turns=1)
+
+    singleCount = 0
+    setCount = 0
+    while 1:
+        move_elipse(arthur, x_amplitude=amplitude, y_amplitude=amplitude, min_timestep=speed, number_of_turns=1)
+        singleCount += 1
+        if not twoTunrsAsSet and singleCount == turns:
+            break
+        move_elipse(arthur, x_amplitude=amplitude / 2, y_amplitude=amplitude / 2, min_timestep=speed, number_of_turns=1)
+        singleCount += 1;
+        setCount += 1
+        if (not twoTunrsAsSet and singleCount == turns) or twoTunrsAsSet and setCount == turns:
+            break
 
     translatel_rel(arthur, 0, 0, 0.1)
 
+
+    if debug:
+        input()
 
     currpos = arthur.getl()
     arthur.movejl([currpos[0], currpos[1], currpos[2], 0, pi, 0], vel=2, acc=2)
 
     arthur.movejl([0.27, -0.495, 0.35, -0, pi, 0], vel=0.1)
-    translatel_rel(arthur, 0, -0.11, -0.16, velocity=0.1)
+    translatel_rel(arthur, 0, -0.104, -0.16, velocity=0.1)
 
 
     gripperAction(openGripper)
@@ -358,7 +411,8 @@ def move_in_pan(arthur, continous = False, debug = False):
     if not continous:
         arthur.home(vel= 2, acc = 2)
 
-def serve_dish(arthur, debug = False):
+def serve_dish(arthur, waitForDish = 1, debug = False):
+    global dishTimer
     arthur.set_tcp([0, 0, 0, 0, 0, 0])
     if debug:
         input()
@@ -368,11 +422,21 @@ def serve_dish(arthur, debug = False):
     if debug:
         input()
 
-    arthur.translatejl([0.43, -0.395, 0.25], vel=0.3, acc=1)
-    translatel_rel(arthur, 0, 0, -0.109, velocity=0.1)
+    arthur.translatejl([0.43, -0.395, 0.45], vel=0.3, acc=1)
+
+
+    realWaitTime = waitForDish - timeToLiftPan_offset
+    while 1:
+        remainingTime = realWaitTime - (time.time() - dishTimer)
+        print(remainingTime)
+        if remainingTime <= 0:
+            break
+
+    translatel_rel(arthur, 0, 0, -0.309, velocity=0.1)
 
     gripperAction(hardGrip)
 
+    print(time.time() - cookingTimer)
     if debug:
         input()
 
@@ -691,9 +755,11 @@ def push_oil(arthur, pushes = 2, debug = True):
     arthur.home(vel = 2, acc = 2)
 
 def main():
+    global cookingTimer
     print("------------Configuring Arthur-------------\r\n")
     arthur = kgr.kg_robot(port=30010, db_host="169.254.50.100")
     print("----------------Hi Arthur!-----------------\r\n\r\n")
+
 
     gripperAction(restart)
     #push_oil(arthur, pushes = 3, debug=False)
@@ -702,12 +768,10 @@ def main():
     #get_salt_and_pepper(arthur, salt = 3, pepper = 3, debug=False)
     #whisking(arthur, waitTime=5, debug=False)
     #retreive_cracker(arthur, debug=False)
-    #pour_egg(arthur, debug=False)
-    #move_pan_to_hob(arthur, continous=True, debug=False)
-    input()
-    move_in_pan(arthur, continous=True, debug=False)
-    input()
-    serve_dish(arthur, debug=False)
+    move_pan_to_hob(arthur, continous=True, debug=False)
+    pour_egg(arthur, waiTime=30, continous=True, debug=False)
+    move_in_pan(arthur, continous=True, turns=1,twoTunrsAsSet = True, debug=False)
+    serve_dish(arthur,waitForDish=180, debug=False)
 
 
     arthur.close()

@@ -79,7 +79,7 @@ void loop() {
     }
     else if(readIn == hardGrip) {
       Serial.print("HARD GRIP");
-      gripObjects(2, 160);
+      gripObjects(2, 135);
     }
     else if(readIn == openMM) {
       
@@ -117,7 +117,7 @@ void gripObjects(int mode, int currentThreshold) {
       while((readCurrent() > 20 || readCurrent() < 5) && errorCheck() == 0 && millis() - timer < 100) {}
 
       while(true) {
-        if(readCurrent() > 50) {
+        if(readCurrent() > 55) {
           // Current detected
           Serial.println("Complete");
           break;
