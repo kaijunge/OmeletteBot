@@ -79,7 +79,7 @@ void loop() {
     }
     else if(readIn == hardGrip) {
       Serial.print("HARD GRIP");
-      gripObjects(2, 135);
+      gripObjects(2, 140);
     }
     else if(readIn == openMM) {
       

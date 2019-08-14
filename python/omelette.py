@@ -237,17 +237,17 @@ def pour_egg(arthur, waiTime = 30, continous = True, debug = False):
     if debug:
         input()
 
-    arthur.movej_rel([0,0,0,pi/4, 0,0], vel=2, acc= 2)
+    arthur.movej_rel([0,0,0,pi/4, 0,0], vel=0.2, acc= 2)
     #arthur.movel_tool([0,0,0,0,10*pi/20, 0], vel=0.3)
 
-    translatel_rel(arthur, 0.06, -0.05, -0.11, velocity=2, accel=2)
+    translatel_rel(arthur, 0.05, -0.04, -0.11, velocity=1, accel=2)
     if debug:
         input()
 
-    arthur.movej_rel([0, 0, 0, pi / 6, 0, 0], vel=3, acc=3)
+    arthur.movej_rel([0, 0, 0, pi / 6, 0, 0], vel=3, acc=2)
     translatel_rel(arthur, 0,0,-0.1, velocity=2,  accel=2)
 
-    arthur.movej_rel([0, 0, 0, pi / 6, 0, 0], vel=3, acc=3)
+    arthur.movej_rel([0, 0, 0, pi / 6, 0, 0], vel=3, acc=2)
 
     dishTimer = time.time()
     time.sleep(1)
@@ -367,7 +367,7 @@ def move_in_pan(arthur, continous = False, turns = 10, twoTunrsAsSet = True, deb
 
     translatel_rel(arthur, 0.21, -0.01, -0.14)
     arthur.force_move([0, 0, -0.1], force=13, vel=0.05)
-    translatel_rel(arthur, 0 , 0, 0.008)
+    translatel_rel(arthur, 0 , 0, 0.003)
 
     print(time.time() - dishTimer)
     if debug:
@@ -441,6 +441,12 @@ def serve_dish(arthur, waitForDish = 1, debug = False):
         input()
 
     translatel_rel(arthur, 0, 0, 0.25, velocity=0.1)
+
+    translatel_rel(arthur, 0, 0.2, 0, velocity=0.1)
+
+    translatel_rel(arthur, 0,0,-0.25, velocity=0.1)
+
+    '''
     arthur.movej_rel([0, 0, 0, 0, 0, -pi / 4], vel=2, acc = 2)
 
     translatel_rel(arthur, -0.8, 0, 0, velocity=0.5, accel = 1.5)
@@ -467,6 +473,7 @@ def serve_dish(arthur, waitForDish = 1, debug = False):
     arthur.movej_rel([0, 0, 0, 0, 0, pi / 4], vel=2, acc=2)
 
     translatel_rel(arthur, 0, 0, -0.23, velocity=0.1)
+    '''
 
     gripperAction(openGripper)
 
@@ -572,7 +579,7 @@ def whisking(arthur, waitTime = 1, debug = False):
         input()
 
     arthur.force_move([0, -0.1, 0], force=40, vel=0.1)
-    translatel_rel(arthur, 0, 0.01, -0.005, velocity=0.2)
+    translatel_rel(arthur, 0, 0.01, -0.008, velocity=0.2)
 
     if debug:
         input()
@@ -591,7 +598,7 @@ def whisking(arthur, waitTime = 1, debug = False):
 
     arthur.translatejl([-0.01,-0.4,0.35], vel = 2, acc = 2)
 
-    translatel_rel(arthur, 0, -0.095, 0, velocity= 1)
+    translatel_rel(arthur, 0, -0.105, 0, velocity= 1)
 
     if debug:
         input()
@@ -675,7 +682,7 @@ def seasoning_motion(arthur, debug = False, shakes=3, pepper = True):
         arthur.movej_rel([0, 0, 0, 0, 0, -pi], vel=2, acc=4)
 
     else:
-        arthur.movej_rel([0, 0, 0, 0, 0, pi / 4], vel=2, acc=4)
+        arthur.movej_rel([0, 0, 0, 0, 0, pi / 4], vel=2, acc=5)
         ### SALT MOTION HEERE!!!
         for i in range(shakes-1):
             arthur.movej_rel([0, 0, 0, 0, 0, -pi/2], vel=5, acc=5)
@@ -704,7 +711,7 @@ def get_salt_and_pepper(arthur, salt = 1, pepper = 1, debug = False):
 
     if debug:
         input()
-    seasoning_motion(arthur, shakes = 3, debug=False, pepper=True)
+    seasoning_motion(arthur, shakes = pepper, debug=False, pepper=True)
 
     if debug:
         input()
@@ -762,16 +769,15 @@ def main():
 
 
     gripperAction(restart)
-    #push_oil(arthur, pushes = 3, debug=False)
-    #open_egg(arthur, eggs = 2)
-    #move_cracker_away(arthur, debug = False)
-    #get_salt_and_pepper(arthur, salt = 3, pepper = 3, debug=False)
-    #whisking(arthur, waitTime=5, debug=False)
-    #retreive_cracker(arthur, debug=False)
+    push_oil(arthur, pushes = 4, debug=False)
+    open_egg(arthur, eggs = 2)
+    move_cracker_away(arthur, debug = False)
+    get_salt_and_pepper(arthur, salt = 4, pepper = 5, debug=False)
+    whisking(arthur, waitTime=4, debug=False)
     move_pan_to_hob(arthur, continous=True, debug=False)
-    pour_egg(arthur, waiTime=30, continous=True, debug=False)
-    move_in_pan(arthur, continous=True, turns=1,twoTunrsAsSet = True, debug=False)
-    serve_dish(arthur,waitForDish=180, debug=False)
+    pour_egg(arthur, waiTime=45, continous=True, debug=False)
+    move_in_pan(arthur, continous=True, turns=8,twoTunrsAsSet = False, debug=False)
+    serve_dish(arthur,waitForDish=360, debug=False)
 
 
     arthur.close()
