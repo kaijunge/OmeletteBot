@@ -61,8 +61,8 @@ void setup() {
 
 void loop() {
   // begin main loop
-  
   while(true) {
+  
     char readIn = Serial.read();
   
     if(readIn == restart) {
@@ -75,11 +75,11 @@ void loop() {
     }
     else if(readIn == mediumGrip) {
       Serial.print("MEDIUM GRIP");
-      gripObjects(2, 110);
+      gripObjects(2, 100);
     }
     else if(readIn == hardGrip) {
       Serial.print("HARD GRIP");
-      gripObjects(2, 140);
+      gripObjects(2, 120);
     }
     else if(readIn == openMM) {
       
@@ -140,14 +140,14 @@ void gripObjects(int mode, int currentThreshold) {
       
       moveArm(fastArm, CLOSE, 100);
       moveArm(slowArm, CLOSE, 100);
-      delay(100);
+      delay(200);
       timer = millis();
-      while((readCurrent() > 70 || readCurrent() < 5) && errorCheck() == 0 && millis() - timer < 100) {}
+      while((readCurrent() > 50 || readCurrent() < 5) && errorCheck() == 0 && millis() - timer < 250) {}
 
       while(true) {
 
         if(debug) { Serial.println(readCurrent()); }
-
+        printArmPos();
         
         if(readCurrent() > currentThreshold) {
           Serial.println("Complete");
@@ -156,6 +156,7 @@ void gripObjects(int mode, int currentThreshold) {
 
         if(errorCheck() != 0) {
           Serial.println("Error");
+          Serial.println(errorCheck());
           break;
         }
       }
@@ -273,6 +274,7 @@ void both_arms_to_base() {
       }
       else {
         Serial.println("Error");
+        Serial.println(errorCheck());
       }
     }  
   }
@@ -282,6 +284,10 @@ void both_arms_to_base() {
     Serial.println("Complete");
   }
  
+}
+
+void printArmPos() {
+  Serial.print("Arm positions:  Slow Arm : "); Serial.print(armPos_raw(slowArm)); Serial.print("  Fast Arm : "); Serial.println(armPos_raw(fastArm));
 }
 
 int armPos_raw(bool whichArm){

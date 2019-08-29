@@ -32,6 +32,7 @@ fastArmOnlyGrip = 9
 
 timeToHeat_offset = 24.088
 timeToLiftPan_offset = 8
+timeToMixing_offset = 29.464
 
 
 ### -----------------------------------------------------###
@@ -65,6 +66,7 @@ def gripperAction(command, msg = 0):
                 return 0
             if "Error" in msgFromArduino:
                 print("Error with gripper!!")
+                print("Error is: ", arduino.readline().decode('utf-8'))
                 return 1
 
 def translatel_rel(arthur, x, y, z, velocity = 0.5, accel = 0.5, linear = True):
@@ -221,7 +223,7 @@ def pour_egg(arthur, waiTime = 30, continous = True, debug = False):
     gripperAction(normalGrip)
 
     ### ----------- GET BOWL OUT OF HOLDER TO MID AIR
-    translatel_rel(arthur, 0, 0.1, 0, velocity=1)
+    translatel_rel(arthur, 0, 0.13, 0, velocity=0.5)
     gripperAction(mediumGrip)
     translatel_rel(arthur, 0, 0.1, 0.2, velocity=1)
 
@@ -300,11 +302,12 @@ def move_pan_to_hob(arthur, continous = False, debug = False):
         input()
 
     arthur.translatejl([0.17, -0.4, 0.25], vel =2, acc = 2)
-    translatel_rel(arthur, 0,0,-0.13, velocity = 0.05)
+    translatel_rel(arthur, 0,0,-0.115, velocity = 0.05)
 
     if debug:
         input()
 
+    gripperAction(normalGrip)
     gripperAction(hardGrip)
 
     liftheight = 0.12
@@ -316,7 +319,7 @@ def move_pan_to_hob(arthur, continous = False, debug = False):
     if debug:
         input()
     arthur.translatejl([0.43, -0.395, 0.13 + liftheight], vel=1, acc = 1)
-    translatel_rel(arthur, 0, 0, -1*liftheight + 0.01, velocity=0.05)
+    translatel_rel(arthur, 0, 0, -1*liftheight + 0.025, velocity=0.05)
 
     cookingTimer = time.time()
     if debug:
@@ -327,6 +330,8 @@ def move_pan_to_hob(arthur, continous = False, debug = False):
     translatel_rel(arthur, 0, 0, 0.10, velocity=0.5)
     arthur.movej_rel([0, 0, 0, 0, 0, -3*pi / 4], vel=2, acc = 2)
 
+    gripperAction(normalGrip)
+    gripperAction(openGripper)
     print(arthur.getl())
 
     if continous == False:
@@ -335,8 +340,8 @@ def move_pan_to_hob(arthur, continous = False, debug = False):
 
     print(time.time() - cookingTimer)
 
-def move_in_pan(arthur, continous = False, turns = 10, twoTunrsAsSet = True, debug = False):
-    global cookingTimer
+def move_in_pan(arthur, continous = False, waitTimeToMix = 45, turns = 10, twoTunrsAsSet = True, debug = False):
+    global cookingTimer, dishTimer
     arthur.set_tcp([0, 0, 0, 0, 0, 0])
     if debug:
         input()
@@ -347,6 +352,7 @@ def move_in_pan(arthur, continous = False, turns = 10, twoTunrsAsSet = True, deb
 
     translatel_rel(arthur, 0, 0, -0.065, velocity=0.5)
 
+    gripperAction(normalGrip)
     gripperAction(mediumGrip)
 
     translatel_rel(arthur, 0,0,0.1, velocity=1)
@@ -365,13 +371,15 @@ def move_in_pan(arthur, continous = False, turns = 10, twoTunrsAsSet = True, deb
     arthur.movejl([currpos[0], currpos[1], currpos[2], 0, (sqrt(0.5) * pi), -sqrt(0.5) * pi], vel=2, acc=2)
 
 
-    translatel_rel(arthur, 0.21, -0.01, -0.14)
-    arthur.force_move([0, 0, -0.1], force=13, vel=0.05)
-    translatel_rel(arthur, 0 , 0, 0.003)
+    translatel_rel(arthur, 0.21, -0.01, -0.11)
 
-    print(time.time() - dishTimer)
-    if debug:
-        input()
+    realWaitTime = waitTimeToMix - timeToMixing_offset
+    if realWaitTime > 0:
+        time.sleep(realWaitTime)
+
+    arthur.force_move([0, 0, -0.1], force=13, vel=0.05)
+    translatel_rel(arthur, 0 , 0, 0.004)
+
 
     speed = 0.03
     amplitude = 0.06
@@ -639,6 +647,7 @@ def whisking(arthur, waitTime = 1, debug = False):
     translatel_rel(arthur, 0, 0.01, 0, velocity=0.2)
     translatel_rel(arthur, 0, 0, 0.01, velocity=0.2)
     translatel_rel(arthur, 0, 0, -0.02, velocity=0.2)
+    translatel_rel(arthur, 0, 0.01, 0, velocity=0.2)
 
     if debug:
         input()
@@ -666,30 +675,44 @@ def seasoning_motion(arthur, debug = False, shakes=3, pepper = True):
         input()
 
     arthur.movej_rel([0,0,0,0,0,pi/2], vel = 2, acc = 3)
-    translatel_rel(arthur,0.05,-0.1, -0.12, velocity = 3, accel = 3)
+    translatel_rel(arthur,0.06,-0.085, -0.12, velocity = 2, accel = 1)
     if debug:
         input()
 
-    if pepper:
-        arthur.movej_rel([0, 0, 0, 0, 0, pi / 2], vel=2, acc=4)
-        ### PEPPER MOTION HEERE!!!
-        for i in range(shakes-1):
-            arthur.movej_rel([0,0,0,0,0,-pi], vel = 6, acc = 6)
-            time.sleep(0.5)
-            arthur.movej_rel([0, 0, 0, 0, 0, pi], vel=6, acc=6)
-            time.sleep(0.5)
+    try:
+        incrament = 0.08/shakes
+    except:
+        incrament = 0
 
-        arthur.movej_rel([0, 0, 0, 0, 0, -pi], vel=2, acc=4)
+    if pepper:
+        if shakes > 0:
+            arthur.movej_rel([0, 0, 0, 0, 0, pi / 2], vel=2, acc=4)
+            ### PEPPER MOTION HEERE!!!
+            for i in range(shakes-1):
+                arthur.movej_rel([0,0,0,0,0,-pi], vel = 6, acc = 6)
+                time.sleep(0.5)
+                translatel_rel(arthur, -1*incrament, 0,0, velocity=0.1)
+                arthur.movej_rel([0, 0, 0, 0, 0, pi], vel=6, acc=6)
+                time.sleep(0.5)
+
+            arthur.movej_rel([0, 0, 0, 0, 0, -pi], vel=6, acc=6)
+        else:
+            arthur.movej_rel([0, 0, 0, 0, 0, -pi/2], vel=6, acc=6)
 
     else:
-        arthur.movej_rel([0, 0, 0, 0, 0, pi / 4], vel=2, acc=5)
-        ### SALT MOTION HEERE!!!
-        for i in range(shakes-1):
-            arthur.movej_rel([0, 0, 0, 0, 0, -pi/2], vel=5, acc=5)
-            arthur.movej_rel([0, 0, 0, 0, 0, pi/2], vel=5, acc=5)
-            time.sleep(0.5)
+        if shakes > 0:
+            arthur.movej_rel([0, 0, 0, 0, 0, pi / 4], vel=5, acc=5)
+            time.sleep(0.2)
+            ### SALT MOTION HEERE!!!
+            for i in range(shakes-1):
+                arthur.movej_rel([0, 0, 0, 0, 0, -pi/2], vel=5, acc=5)
+                translatel_rel(arthur, -1 * incrament, 0, 0, velocity=0.1)
+                arthur.movej_rel([0, 0, 0, 0, 0, pi/2], vel=5, acc=5)
+                time.sleep(0)
 
-        arthur.movej_rel([0, 0, 0, 0, 0, -3*pi/4], vel=2, acc=4)
+            arthur.movej_rel([0, 0, 0, 0, 0, -3*pi/4], vel=5, acc=5)
+        else:
+            arthur.movej_rel([0, 0, 0, 0, 0, -pi / 2], vel=5, acc=5)
 
 
 
@@ -769,17 +792,25 @@ def main():
 
 
     gripperAction(restart)
-    push_oil(arthur, pushes = 4, debug=False)
-    open_egg(arthur, eggs = 2)
-    move_cracker_away(arthur, debug = False)
-    get_salt_and_pepper(arthur, salt = 4, pepper = 5, debug=False)
-    whisking(arthur, waitTime=4, debug=False)
+
+
+    #push_oil(arthur, pushes = 4, debug=True)
+    #open_egg(arthur, eggs = 2, debug=True)
+    #move_cracker_away(arthur, debug = True)
+    get_salt_and_pepper(arthur, salt = 0, pepper =0, debug=True)
+    #whisking(arthur, waitTime=1, debug=False)
     move_pan_to_hob(arthur, continous=True, debug=False)
     pour_egg(arthur, waiTime=45, continous=True, debug=False)
-    move_in_pan(arthur, continous=True, turns=8,twoTunrsAsSet = False, debug=False)
-    serve_dish(arthur,waitForDish=360, debug=False)
+    move_in_pan(arthur, continous=True,waitTimeToMix=45, turns=8,twoTunrsAsSet = False, debug=False)
+    serve_dish(arthur,waitForDish=361, debug=False)
+    #input()
+    #arthur.home()
+    #retreive_cracker(arthur, debug=True)
 
-
+    gripperAction(normalGrip)
+    gripperAction(openGripper)
+    gripperAction(normalGrip)
+    gripperAction(openGripper)
     arthur.close()
 
 if __name__ == '__main__': 
