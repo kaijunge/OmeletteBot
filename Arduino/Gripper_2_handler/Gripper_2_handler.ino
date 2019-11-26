@@ -12,7 +12,7 @@
 #define fastArm false
 #define slowArm true
 
-#define potEnable 13
+#define potEnable 12
 #define slowArmPin A1
 #define fastArmPin A2
 
@@ -20,7 +20,7 @@
 #define slowArmLimit 880
 #define closingLimit 165 //165
 
-#define potTolerance 10
+#define potTolerance 13
 
 bool fastArmStatus = false;
 bool slowArmStatus = false;
@@ -62,6 +62,7 @@ void setup() {
 void loop() {
   // begin main loop
   while(true) {
+    //printArmPos();
   
     char readIn = Serial.read();
   
@@ -75,7 +76,7 @@ void loop() {
     }
     else if(readIn == mediumGrip) {
       Serial.print("MEDIUM GRIP");
-      gripObjects(2, 100);
+      gripObjects(2, 97);
     }
     else if(readIn == hardGrip) {
       Serial.print("HARD GRIP");

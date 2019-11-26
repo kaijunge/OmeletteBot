@@ -165,6 +165,7 @@ def open_egg(arthur, eggs = 2, debug = False):
         input()
 
     arthur.home(vel = 2, acc = 2)
+    input()
 
 '''
 #Getting the egg opener
@@ -194,13 +195,14 @@ def take_out_shell(arthur, debug = False):
         input()
 '''
 
-def pour_egg(arthur, waiTime = 30, continous = True, debug = False):
+def pour_egg(arthur, waiTime = 30, continous = True, debug = False, useTimer = True):
     global cookingTimer, dishTimer
     gripperAction(openGripper)
 
+    print("pouring egg into pan")
     realWaitTime = waiTime - timeToHeat_offset
 
-    if time.time() - realWaitTime > 0:
+    if time.time() - realWaitTime > 0 and useTimer:
         time.sleep(realWaitTime)
 
     if debug:
@@ -209,12 +211,12 @@ def pour_egg(arthur, waiTime = 30, continous = True, debug = False):
     arthur.set_tcp([0, 0, 0.163, 0, 0, 0])
 
     ### ----------- GO TO BOWL GRASPING POSITION
-    arthur.movejl([-0.02, -0.5, 0.15, 0, pi, 0], vel=2, acc=2)
+    arthur.movejl([-0.02, -0.5, 0.15, 0, pi, 0], vel=1, acc=1.5)
     arthur.movel_tool([0, 0, 0, 0, 0, pi / 2], vel=1)
     arthur.movel_tool([0, 0, 0, 0, -pi / 12, 0], vel=1)
 
     ### ----------- LOWER DOWN THE GRIPPER AND GRASP
-    translatel_rel(arthur, 0, -0.03, -0.11, velocity=0.1)
+    translatel_rel(arthur, 0, -0.024, -0.11, velocity=0.1)
 
     if debug:
         input()
@@ -223,8 +225,9 @@ def pour_egg(arthur, waiTime = 30, continous = True, debug = False):
     gripperAction(normalGrip)
 
     ### ----------- GET BOWL OUT OF HOLDER TO MID AIR
-    translatel_rel(arthur, 0, 0.13, 0, velocity=0.5)
+    translatel_rel(arthur, 0, 0.15, 0, velocity=0.3)
     gripperAction(mediumGrip)
+
     translatel_rel(arthur, 0, 0.1, 0.2, velocity=1)
 
     ### ----------- MOVE TO POURING POSITION
@@ -272,13 +275,13 @@ def pour_egg(arthur, waiTime = 30, continous = True, debug = False):
     if debug:
         input()
 
-    translatel_rel(arthur, 0, -0.18, -0.06, velocity=1)
+    translatel_rel(arthur, 0, -0.19, -0.07, velocity=1)
     gripperAction(openGripper)
 
     if debug:
         input()
 
-    translatel_rel(arthur, 0, 0, -0.045, velocity=1)
+    translatel_rel(arthur, 0, 0.01, -0.035, velocity=1)
     translatel_rel(arthur, 0, -0.045, 0, velocity=1)
 
     ### ----------- GET GRIPPER OUT OF THE BOWL
@@ -330,8 +333,6 @@ def move_pan_to_hob(arthur, continous = False, debug = False):
     translatel_rel(arthur, 0, 0, 0.10, velocity=0.5)
     arthur.movej_rel([0, 0, 0, 0, 0, -3*pi / 4], vel=2, acc = 2)
 
-    gripperAction(normalGrip)
-    gripperAction(openGripper)
     print(arthur.getl())
 
     if continous == False:
@@ -377,7 +378,7 @@ def move_in_pan(arthur, continous = False, waitTimeToMix = 45, turns = 10, twoTu
     if realWaitTime > 0:
         time.sleep(realWaitTime)
 
-    arthur.force_move([0, 0, -0.1], force=13, vel=0.05)
+    arthur.force_move([0, 0, -0.1], force=16, vel=0.05)
     translatel_rel(arthur, 0 , 0, 0.004)
 
 
@@ -409,7 +410,7 @@ def move_in_pan(arthur, continous = False, waitTimeToMix = 45, turns = 10, twoTu
     arthur.movejl([currpos[0], currpos[1], currpos[2], 0, pi, 0], vel=2, acc=2)
 
     arthur.movejl([0.27, -0.495, 0.35, -0, pi, 0], vel=0.1)
-    translatel_rel(arthur, 0, -0.104, -0.16, velocity=0.1)
+    translatel_rel(arthur, 0, -0.11, -0.17, velocity=0.1)
 
 
     gripperAction(openGripper)
@@ -419,7 +420,7 @@ def move_in_pan(arthur, continous = False, waitTimeToMix = 45, turns = 10, twoTu
     if not continous:
         arthur.home(vel= 2, acc = 2)
 
-def serve_dish(arthur, waitForDish = 1, debug = False):
+def serve_dish(arthur, waitForDish = 1, debug = False, useTimer = True):
     global dishTimer
     arthur.set_tcp([0, 0, 0, 0, 0, 0])
     if debug:
@@ -432,15 +433,16 @@ def serve_dish(arthur, waitForDish = 1, debug = False):
 
     arthur.translatejl([0.43, -0.395, 0.45], vel=0.3, acc=1)
 
+    if useTimer:
 
-    realWaitTime = waitForDish - timeToLiftPan_offset
-    while 1:
-        remainingTime = realWaitTime - (time.time() - dishTimer)
-        print(remainingTime)
-        if remainingTime <= 0:
-            break
+        realWaitTime = waitForDish - timeToLiftPan_offset
+        while 1:
+            remainingTime = realWaitTime - (time.time() - dishTimer)
+            print(remainingTime)
+            if remainingTime <= 0:
+                break
 
-    translatel_rel(arthur, 0, 0, -0.309, velocity=0.1)
+    translatel_rel(arthur, 0, 0, -0.308, velocity=0.1) #-0.309
 
     gripperAction(hardGrip)
 
@@ -457,14 +459,14 @@ def serve_dish(arthur, waitForDish = 1, debug = False):
     '''
     arthur.movej_rel([0, 0, 0, 0, 0, -pi / 4], vel=2, acc = 2)
 
-    translatel_rel(arthur, -0.8, 0, 0, velocity=0.5, accel = 1.5)
+    translatel_rel(arthur, -0.8, 0, 0, velocity=0.1, accel = 1.5)
 
     translatel_rel(arthur, 0, 0.1, 0, velocity=0.1)
 
     if debug:
         input()
 
-    translatel_rel(arthur, 0, 0.1, -0.15, velocity=0.1)
+    translatel_rel(arthur, 0, 0.1, -0.14, velocity=0.1)
     arthur.set_tcp([0, 0, 0.13, 0, 0, 0])
     arthur.movel_tool([0,0,0, 0,7*pi/12,0], vel=0.1)
 
@@ -472,7 +474,7 @@ def serve_dish(arthur, waitForDish = 1, debug = False):
 
     arthur.movel_tool([0, 0, 0, 0, -7 * pi / 12, 0], vel=0.2)
 
-    translatel_rel(arthur, 0,0,0.13, velocity=1)
+    translatel_rel(arthur, 0,-0.1,0.13, velocity=0.1)
 
     arthur.set_tcp([0, 0, 0, 0, 0, 0])
 
@@ -481,8 +483,8 @@ def serve_dish(arthur, waitForDish = 1, debug = False):
     arthur.movej_rel([0, 0, 0, 0, 0, pi / 4], vel=2, acc=2)
 
     translatel_rel(arthur, 0, 0, -0.23, velocity=0.1)
-    '''
 
+    '''
     gripperAction(openGripper)
 
     translatel_rel(arthur, 0, 0, 0.2, velocity=0.1)
@@ -532,6 +534,9 @@ def move_cracker_away(arthur, debug = False):
         input()
 
     translatel_rel(arthur, 0,-0.1, 0, velocity=0.05)
+
+    if debug:
+        input()
     gripperAction(mediumGrip)
     translatel_rel(arthur, 0, 0, 0.15, velocity=0.4)
     translatel_rel(arthur, 0.05, -0.13, 0, velocity=0.4)
@@ -571,6 +576,7 @@ def retreive_cracker(arthur, debug = False):
 
     arthur.home(vel = 2, acc = 2)
 
+
 def whisking(arthur, waitTime = 1, debug = False):
     print("Whisking with new whisking device")
     arthur.set_tcp([0, 0, 0, 0, 0, 0])
@@ -592,7 +598,8 @@ def whisking(arthur, waitTime = 1, debug = False):
     if debug:
         input()
 
-    gripperAction(hardGrip)
+    gripperAction(mediumGrip)
+    gripperAction(normalGrip)
 
     translatel_rel(arthur, 0, 0, 0.05, velocity=0.2)
 
@@ -621,8 +628,9 @@ def whisking(arthur, waitTime = 1, debug = False):
 
     time.sleep(waitTime)
 
-
-    translatel_rel(arthur, 0, 0, heightdrop, velocity=2, accel=2)
+    translatel_rel(arthur, 0, 0, 0.04, velocity=2, accel=2)
+    time.sleep(1)
+    translatel_rel(arthur, 0, 0, heightdrop - 0.04, velocity=0.5, accel=2)
     translatel_rel(arthur, 0, 0.13, 0, velocity=1)
 
     arthur.movej_rel([0,0,0,pi/2,5*pi/6,-pi], vel = 2, acc = 2)
@@ -793,24 +801,20 @@ def main():
 
     gripperAction(restart)
 
-
-    #push_oil(arthur, pushes = 4, debug=True)
-    #open_egg(arthur, eggs = 2, debug=True)
-    #move_cracker_away(arthur, debug = True)
-    get_salt_and_pepper(arthur, salt = 0, pepper =0, debug=True)
-    #whisking(arthur, waitTime=1, debug=False)
+    input()
+    push_oil(arthur, pushes = 5, debug=False)
+    open_egg(arthur, eggs = 2, debug=False)
+    move_cracker_away(arthur, debug = False)
+    get_salt_and_pepper(arthur, salt = 7, pepper =7, debug=False)
+    whisking(arthur, waitTime=9, debug=False)
     move_pan_to_hob(arthur, continous=True, debug=False)
-    pour_egg(arthur, waiTime=45, continous=True, debug=False)
-    move_in_pan(arthur, continous=True,waitTimeToMix=45, turns=8,twoTunrsAsSet = False, debug=False)
-    serve_dish(arthur,waitForDish=361, debug=False)
-    #input()
-    #arthur.home()
+    pour_egg(arthur, waiTime=45, continous=True, debug=False, useTimer=True)
+    move_in_pan(arthur, continous=True,waitTimeToMix=45, turns=5,twoTunrsAsSet = False, debug=False)
+    serve_dish(arthur,waitForDish=400, debug=False, useTimer=True)
+    input()
+    arthur.home()
     #retreive_cracker(arthur, debug=True)
 
-    gripperAction(normalGrip)
-    gripperAction(openGripper)
-    gripperAction(normalGrip)
-    gripperAction(openGripper)
     arthur.close()
 
 if __name__ == '__main__': 
