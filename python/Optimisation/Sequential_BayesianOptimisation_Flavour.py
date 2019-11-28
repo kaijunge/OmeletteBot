@@ -301,5 +301,5 @@ def plot_current_status(iteration):
 
 if __name__ == "__main__":
     #print_func()
-    print(one_dim_gaussian(0.3,  0.3, 0.2, 1.5))
+    #print(one_dim_gaussian(0.3,  0.3, 0.2, 1.5))
     omelette_optimisation()

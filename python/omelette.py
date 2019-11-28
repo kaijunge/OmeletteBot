@@ -1,3 +1,13 @@
+'''
+For operating the UR5 arm. Includes the sequence to perform omelette cooking
+within the specific kitchen setup. 
+
+Uses kg_robot, a UR5 controller class developed by Kieran Gilday. 
+LINK: https://github.com/kg398/Generic_ur5_controller
+
+Edited by Kai Junge
+'''
+
 import time
 import datetime
 import serial
@@ -11,11 +21,6 @@ import kg_robot as kgr
 ### -----------------------------------------------------###
 ### ----------------------- Notes -----------------------###
 
-'''
--0.02 in x direction is the centre of tools
-
-
-'''
 
 ### -----------------------------------------------------###
 ### -----------------Defining Constants------------------###
